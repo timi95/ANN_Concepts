@@ -117,3 +117,49 @@ class CartHeavyTriangle : CartPole {
     }
     override string getShapeName() const { return "Heavy Triangle"; }
 }
+
+unittest {
+    import std.stdio;
+    writeln("Running CartPole unit tests...");
+
+    // Test 1: Gravity
+    auto cp = new CartPole();
+    cp.theta = 0.05;
+    cp.theta_dot = 0.0;
+    
+    for (int i = 0; i < 10; i++) {
+        cp.update(0.0);
+    }
+    assert(cp.theta > 0.05, "Pole should fall under gravity");
+    writeln("  Passed: Gravity check");
+
+    // Test 2: PD Control
+    cp = new CartPole();
+    cp.theta = 0.05;
+    int steps = 0;
+    while (!cp.isGameOver() && steps < 1000) {
+        double force = 100.0 * cp.theta + 20.0 * cp.theta_dot;
+        cp.update(force);
+        steps++;
+    }
+    assert(steps > 100, "PD controller should balance for a while");
+    writeln("  Passed: PD control check (survived ", steps, " steps)");
+
+    // Test 3: Limits
+    cp = new CartPole();
+    cp.x = 2.5;
+    assert(cp.isGameOver(), "Should be game over if x > threshold");
+    
+    cp = new CartPole();
+    cp.theta = 0.3;
+    assert(cp.isGameOver(), "Should be game over if theta > threshold");
+    writeln("  Passed: Limits check");
+
+    // Test 4: Force
+    cp = new CartPole();
+    cp.update(10.0);
+    assert(cp.x_dot > 0, "Positive force should cause positive velocity");
+    writeln("  Passed: Force check");
+    
+    writeln("All CartPole unit tests passed.");
+}

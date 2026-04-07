@@ -72,11 +72,21 @@ The Cart-Pole simulation can also be run in a web browser using pure JavaScript 
 The web version features a real-time visualization of the cart-pole system and the neural network's topology, including weight strengths and neuron activations.
 
 **Running Tests:**
-To verify the browser simulation logic (including shape change functionality), run the Node.js test script:
+To verify the browser simulation logic, run the Node.js test scripts:
+
+1.  **Shape Change Tests**: Validates physical constants and state resets across different pole configurations.
+    ```bash
+    node web/test_shapes.js
+    ```
+2.  **Balancing Logic Tests**: Verifies the core physics engine, gravity, and boundary conditions.
+    ```bash
+    node web/test_balancing.js
+    ```
+
+To run the native D unit tests:
 ```bash
-node web/test_shapes.js
+dub test
 ```
-This script validates the physical constants and state resets across different pole configurations.
 
 ### Configuration
 
