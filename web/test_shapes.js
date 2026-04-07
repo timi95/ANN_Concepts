@@ -15,7 +15,8 @@ global.document = {
         { id: 'standard-btn', classList: { add: () => {}, remove: () => {} } },
         { id: 'long-btn', classList: { add: () => {}, remove: () => {} } },
         { id: 'weighted-btn', classList: { add: () => {}, remove: () => {} } },
-        { id: 'shortheavy-btn', classList: { add: () => {}, remove: () => {} } }
+        { id: 'shortheavy-btn', classList: { add: () => {}, remove: () => {} } },
+        { id: 'triangle-btn', classList: { add: () => {}, remove: () => {} } }
     ]
 };
 
@@ -82,7 +83,13 @@ assert(cartPole.shapeType === 'shortheavy', 'Shape should be shortheavy');
 assert(cartPole.mass_pole === 1.0, 'Short heavy pole mass should be 1.0');
 assert(cartPole.length === 0.2, 'Short heavy pole length should be 0.2');
 
-// Test 5: Change back to Standard
+// Test 5: Change to Triangle
+changeShape('triangle');
+assert(cartPole.shapeType === 'triangle', 'Shape should be triangle');
+assert(cartPole.mass_pole === 0.3, 'Triangle mass should be 0.3');
+assert(cartPole.length === 0.6, 'Triangle length should be 0.6');
+
+// Test 6: Change back to Standard
 changeShape('standard');
 assert(cartPole.shapeType === 'standard', 'Should change back to standard');
 assert(cartPole.mass_pole === 0.1, 'Standard pole mass should be 0.1');

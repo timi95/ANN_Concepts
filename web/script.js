@@ -30,6 +30,11 @@ class CartPole {
                 this.length = 0.2;
                 this.shapeName = "Short Heavy Pole";
                 break;
+            case 'triangle':
+                this.mass_pole = 0.3;
+                this.length = 0.6; // Higher COM
+                this.shapeName = "Triangle Shape";
+                break;
             case 'standard':
             default:
                 this.mass_pole = 0.1;
@@ -263,12 +268,46 @@ function drawSimulation(cp, net) {
     let poleX2 = poleX1 + poleLen * Math.sin(cp.theta);
     let poleY2 = poleY1 - poleLen * Math.cos(cp.theta);
 
-    ctx.strokeStyle = '#C83232';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(poleX1, poleY1);
-    ctx.lineTo(poleX2, poleY2);
-    ctx.stroke();
+    if (cp.shapeType === 'triangle') {
+        // Draw Triangle balancing on its point
+        let triangleWidth = 60;
+        let triangleHeight = poleLen * 1.5; // Scale height slightly for visualization
+        
+        // Vertices relative to the balance point (poleX1, poleY1)
+        // 1. Balance point: (poleX1, poleY1)
+        // 2. Top-left vertex: rotated from (0, -triangleHeight) offset by (-triangleWidth/2, 0)
+        // 3. Top-right vertex: rotated from (0, -triangleHeight) offset by (triangleWidth/2, 0)
+        
+        let cosT = Math.cos(cp.theta);
+        let sinT = Math.sin(cp.theta);
+        
+        let dxLeft = -triangleWidth / 2;
+        let dyTop = -triangleHeight;
+        let dxRight = triangleWidth / 2;
+        
+        let x2 = poleX1 + (dxLeft * cosT - dyTop * sinT);
+        let y2 = poleY1 + (dxLeft * sinT + dyTop * cosT);
+        let x3 = poleX1 + (dxRight * cosT - dyTop * sinT);
+        let y3 = poleY1 + (dxRight * sinT + dyTop * cosT);
+
+        ctx.fillStyle = 'rgba(200, 50, 50, 0.7)';
+        ctx.strokeStyle = '#C83232';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(poleX1, poleY1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    } else {
+        ctx.strokeStyle = '#C83232';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(poleX1, poleY1);
+        ctx.lineTo(poleX2, poleY2);
+        ctx.stroke();
+    }
 
     // Draw Ground
     ctx.strokeStyle = 'black';
