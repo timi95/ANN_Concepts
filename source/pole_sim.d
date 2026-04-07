@@ -89,3 +89,10 @@ class CartShortHeavyPole : CartPole {
     }
     override string getShapeName() const { return "Short Heavy Pole"; }
 }
+
+class CartTriangle : CartPole {
+    this() {
+        super(0.3, 0.6); // Higher COM for triangle
+    }
+    override string getShapeName() const { return "Triangle Shape"; }
+}

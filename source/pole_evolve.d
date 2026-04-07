@@ -220,6 +220,7 @@ double evaluateFitness(EvolvableNetwork net, string shapeType = "Standard Pole",
         case "Long Pole": cp = new CartLongPole(); break;
         case "Weighted Pole": cp = new CartWeightedPole(); break;
         case "Short Heavy Pole": cp = new CartShortHeavyPole(); break;
+        case "Triangle Shape": cp = new CartTriangle(); break;
         default: cp = new CartPole(); break;
     }
     int steps = 0;
@@ -239,6 +240,7 @@ void displaySimulation(EvolvableNetwork net, string shapeType = "Standard Pole",
         case "Long Pole": cp = new CartLongPole(); break;
         case "Weighted Pole": cp = new CartWeightedPole(); break;
         case "Short Heavy Pole": cp = new CartShortHeavyPole(); break;
+        case "Triangle Shape": cp = new CartTriangle(); break;
         default: cp = new CartPole(); break;
     }
     int steps = 0;
@@ -291,7 +293,7 @@ void main() {
     int[] initialTopology = [4, 1, 1];
     auto pop = new Population(50, initialTopology);
     
-    string[] shapes = ["Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole"];
+    string[] shapes = ["Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", "Triangle Shape"];
     writeln("Starting NeuroEvolution for Cart-Pole [Various Shapes]...");
     
     // We'll rotate shapes every 20 generations for variety in ASCII version
