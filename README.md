@@ -61,6 +61,19 @@ Evolve a network to balance the pole with a real-time SDL2 visualization.
 dub run :pole-sdl
 ```
 
+#### 5. Web Simulation (WebAssembly)
+The Cart-Pole simulation can also be run in a web browser using WebAssembly. A specialized build environment using **LDC** (the LLVM D Compiler) and **Emscripten** is required.
+
+**Building for Web:**
+1. Ensure you have the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html) and [LDC](https://dlang.org/download.html) installed.
+2. Navigate to the `web/` directory.
+3. Run `make`. This will:
+   - Compile the D source to LLVM bitcode using LDC.
+   - Link the bitcode to WebAssembly and generate JavaScript/HTML using Emscripten.
+4. Open `web/index.html` in a web browser using a local web server (e.g., `python -m http.server`).
+
+The web version features a custom main loop to support Emscripten's asynchronous execution model while retaining the core logic and visualization.
+
 ### Configuration
 
 You can find the build configurations in `dub.json`. The project supports multiple executables:
