@@ -118,6 +118,19 @@ class CartHeavyTriangle : CartPole {
     override string getShapeName() const { return "Heavy Triangle"; }
 }
 
+class CartStar : CartPole {
+    int points;
+    this(int p) {
+        this.points = p;
+        super(0.1 + (p * 0.05), 0.4 + (p * 0.02));
+    }
+    override string getShapeName() const { 
+        import std.format;
+        return format("%d-Pointed Star", points); 
+    }
+    int getPoints() const { return points; }
+}
+
 unittest {
     import std.stdio;
     writeln("Running CartPole unit tests...");

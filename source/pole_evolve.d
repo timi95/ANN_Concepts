@@ -154,12 +154,11 @@ class EvolvableNetwork {
         writeln("\n");
     }
 
-    void mutate(ref Random rnd, double weightMutationRate, double weightMutationScale, double topologyMutationRate) {
-        foreach (l; layers) {
-            l.mutate(rnd, weightMutationRate, weightMutationScale);
-        }
+    void mutate(ref Random rnd, double weightMutationRate, double weightMutationScale, double topologyMutationRate, bool priorityTopology = true) {
+        bool topologyMutated = false;
 
         if (layers.length > 1 && uniform01(rnd) < topologyMutationRate) {
+            topologyMutated = true;
             size_t layerIdx = uniform(0, layers.length - 1, rnd); 
             size_t inputCount = (layerIdx == 0) ? layers[0].neurons[0].weights.length : layers[layerIdx-1].neurons.length;
             layers[layerIdx].neurons ~= new EvolvableNeuron(inputCount, rnd);
@@ -169,6 +168,7 @@ class EvolvableNetwork {
         }
 
         if (layers.length > 1 && uniform01(rnd) < topologyMutationRate) {
+            topologyMutated = true;
             size_t layerIdx = uniform(0, layers.length - 1, rnd);
             if (layers[layerIdx].neurons.length > 1) {
                 size_t neuronIdx = uniform(0, layers[layerIdx].neurons.length, rnd);
@@ -178,6 +178,12 @@ class EvolvableNetwork {
                         n.weights = n.weights.remove(neuronIdx);
                     }
                 }
+            }
+        }
+
+        if (!priorityTopology || !topologyMutated) {
+            foreach (l; layers) {
+                l.mutate(rnd, weightMutationRate, weightMutationScale);
             }
         }
     }
@@ -195,7 +201,7 @@ class Population {
         }
     }
 
-    void evolve(double weightMutationRate, double weightMutationScale, double topologyMutationRate) {
+    void evolve(double weightMutationRate, double weightMutationScale, double topologyMutationRate, bool priorityTopology = true) {
         sort!((a, b) => a.fitness > b.fitness)(networks);
         size_t eliteCount = networks.length / 10;
         if (eliteCount == 0) eliteCount = 1;
@@ -207,7 +213,7 @@ class Population {
         while (nextGeneration.length < networks.length) {
             size_t parentIdx = uniform(0, eliteCount, rnd);
             auto child = new EvolvableNetwork(networks[parentIdx]);
-            child.mutate(rnd, weightMutationRate, weightMutationScale, topologyMutationRate);
+            child.mutate(rnd, weightMutationRate, weightMutationScale, topologyMutationRate, priorityTopology);
             nextGeneration ~= child;
         }
         networks = nextGeneration;
@@ -224,7 +230,17 @@ double evaluateFitness(EvolvableNetwork net, string shapeType = "Standard Pole",
         case "Small Triangle": cp = new CartSmallTriangle(); break;
         case "Large Triangle": cp = new CartLargeTriangle(); break;
         case "Heavy Triangle": cp = new CartHeavyTriangle(); break;
-        default: cp = new CartPole(); break;
+        default: 
+            if (shapeType.canFind("Star")) {
+                import std.string;
+                int p = 5;
+                auto parts = shapeType.split("-");
+                if (parts.length > 0) p = parts[0].to!int;
+                cp = new CartStar(p);
+            } else {
+                cp = new CartPole();
+            }
+            break;
     }
     int steps = 0;
     while (!cp.isGameOver() && steps < maxSteps) {
@@ -247,7 +263,17 @@ void displaySimulation(EvolvableNetwork net, string shapeType = "Standard Pole",
         case "Small Triangle": cp = new CartSmallTriangle(); break;
         case "Large Triangle": cp = new CartLargeTriangle(); break;
         case "Heavy Triangle": cp = new CartHeavyTriangle(); break;
-        default: cp = new CartPole(); break;
+        default: 
+            if (shapeType.canFind("Star")) {
+                import std.string;
+                int p = 5;
+                auto parts = shapeType.split("-");
+                if (parts.length > 0) p = parts[0].to!int;
+                cp = new CartStar(p);
+            } else {
+                cp = new CartPole();
+            }
+            break;
     }
     int steps = 0;
     writeln("\n--- Cart-Pole Simulation [", cp.getShapeName(), "] ---");
@@ -301,7 +327,10 @@ void main() {
     
     string[] shapes = [
         "Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", 
-        "Standard Triangle", "Small Triangle", "Large Triangle", "Heavy Triangle"
+        "Standard Triangle", "Small Triangle", "Large Triangle", "Heavy Triangle",
+        "2-Pointed Star", "3-Pointed Star", "4-Pointed Star", "5-Pointed Star",
+        "6-Pointed Star", "7-Pointed Star", "8-Pointed Star", "9-Pointed Star",
+        "10-Pointed Star"
     ];
     writeln("Starting NeuroEvolution for Cart-Pole [Various Shapes]...");
     
@@ -327,7 +356,7 @@ void main() {
             if (gen > 80) break; // Keep going for a bit to try other shapes if early success
         }
         
-        pop.evolve(0.1, 0.2, 0.05);
+        pop.evolve(0.1, 0.2, 0.05, true);
     }
 
     auto finalBest = pop.networks.maxElement!(n => n.fitness);

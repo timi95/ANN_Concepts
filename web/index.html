@@ -5,35 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart-Pole NeuroEvolution (JS)</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
-        canvas { border: 1px solid #ccc; background: white; max-width: 100%; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; margin: 0; padding: 20px; }
+        h1 { margin-bottom: 20px; }
+        canvas { border: 1px solid #ccc; background: white; max-width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .main-container { display: flex; flex-direction: row; gap: 20px; max-width: 1000px; align-items: flex-start; }
+        .canvas-area { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        .side-bar { display: flex; flex-direction: column; gap: 15px; min-width: 180px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .controls { margin-top: 1em; text-align: center; max-width: 800px; }
-        .button-group { margin: 10px 0; }
-        button { padding: 8px 16px; margin: 0 5px; cursor: pointer; border: 1px solid #999; border-radius: 4px; background: #fff; }
-        button:hover { background: #eee; }
-        button.active { background: #007bff; color: #fff; border-color: #0056b3; }
+        .button-group { margin: 10px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        
+        /* Shape Buttons */
+        button { padding: 8px 12px; cursor: pointer; border: 1px solid #ccc; border-radius: 6px; background: #f8f9fa; transition: all 0.2s; font-size: 0.9em; }
+        button:hover { background: #e2e6ea; border-color: #adb5bd; }
+        button.active { background: #007bff; color: #fff; border-color: #0056b3; font-weight: bold; }
+        
+        /* Control Buttons (Pause, Priority) */
+        .control-btn { border-width: 2px; font-weight: bold; padding: 12px 16px; width: 100%; }
+        
+        #pause-btn { border-color: #28a745; color: #28a745; background: #fff; }
+        #pause-btn:hover { background: #e8f5e9; }
+        #pause-btn.active { background: #28a745; color: #fff; }
+        
+        #priority-btn { border-color: #fd7e14; color: #fd7e14; background: #fff; }
+        #priority-btn:hover { background: #fff3e6; }
+        #priority-btn.active { background: #fd7e14; color: #fff; }
+
+        .side-title { font-size: 0.85em; font-weight: bold; color: #666; text-transform: uppercase; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <h1>Cart-Pole NeuroEvolution (Pure JavaScript)</h1>
-    <div class="button-group">
+    <h1>Cart-Pole NeuroEvolution</h1>
+    
+    <div class="button-group" id="shape-group">
         <button id="standard-btn" class="active" onclick="changeShape('standard')">Standard Pole</button>
         <button id="long-btn" onclick="changeShape('long')">Long Pole</button>
         <button id="weighted-btn" onclick="changeShape('weighted')">Weighted Pole</button>
         <button id="shortheavy-btn" onclick="changeShape('shortheavy')">Short Heavy Pole</button>
-        <button id="pause-btn" onclick="togglePause()">Pause</button>
-    </div>
-    <div class="button-group">
         <button id="triangle-btn" onclick="changeShape('triangle')">Std Triangle</button>
         <button id="smalltriangle-btn" onclick="changeShape('small_triangle')">Small Triangle</button>
         <button id="largetriangle-btn" onclick="changeShape('large_triangle')">Large Triangle</button>
         <button id="heavytriangle-btn" onclick="changeShape('heavy_triangle')">Heavy Triangle</button>
         <button id="tiltedtriangle-btn" onclick="changeShape('tilted_triangle')">Tilted Triangle</button>
     </div>
-    <canvas id="canvas"></canvas>
+    
+    <div class="button-group" id="star-group">
+        <button id="star2-btn" onclick="changeShape('star2')">2-Star</button>
+        <button id="star3-btn" onclick="changeShape('star3')">3-Star</button>
+        <button id="star4-btn" onclick="changeShape('star4')">4-Star</button>
+        <button id="star5-btn" onclick="changeShape('star5')">5-Star</button>
+        <button id="star6-btn" onclick="changeShape('star6')">6-Star</button>
+        <button id="star7-btn" onclick="changeShape('star7')">7-Star</button>
+        <button id="star8-btn" onclick="changeShape('star8')">8-Star</button>
+        <button id="star9-btn" onclick="changeShape('star9')">9-Star</button>
+        <button id="star10-btn" onclick="changeShape('star10')">10-Star</button>
+    </div>
+
+    <div class="main-container">
+        <div class="canvas-area">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div class="side-bar">
+            <div class="side-title">Simulation Controls</div>
+            <button id="pause-btn" class="control-btn" onclick="togglePause()">Pause</button>
+            <button id="priority-btn" class="control-btn active" onclick="togglePriority()">Prioritize: Topology</button>
+            
+            <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
+                <div class="side-title">Status</div>
+                <div id="status" style="font-size: 0.85em; color: #333; line-height: 1.4;">Starting...</div>
+            </div>
+        </div>
+    </div>
+
     <div class="controls">
-        <p>This simulation uses NeuroEvolution to train a neural network to balance a pole on a cart. The entire simulation and visualization are implemented in JavaScript using HTML5 Canvas.</p>
-        <p>Status: <span id="status">Starting...</span></p>
+        <p>This simulation uses NeuroEvolution to train a neural network to balance various shapes on a cart.</p>
     </div>
     <script src="script.js"></script>
 </body>

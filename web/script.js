@@ -1,6 +1,6 @@
 const PI = Math.PI;
 
-class CartPole {
+var CartPole = class {
     constructor(type = 'standard') {
         this.gravity = 9.8;
         this.mass_cart = 1.0;
@@ -64,6 +64,18 @@ class CartPole {
                 this.length = 0.5;
                 this.shapeName = "Standard Pole";
                 break;
+        }
+
+        // Star shapes 2-10
+        if (type.startsWith('star')) {
+            let points = parseInt(type.substring(4));
+            if (!isNaN(points) && points >= 2 && points <= 10) {
+                this.mass_pole = 0.1 + (points * 0.05); // Mass scales with points
+                this.length = 0.4 + (points * 0.02); // Length scales slightly
+                this.shapeName = points + "-Pointed Star";
+                this.shapeType = 'star';
+                this.starPoints = points;
+            }
         }
     }
 
@@ -141,6 +153,24 @@ class EvolvableNeuron {
         }
     }
 
+    addInput() {
+        let newWeights = new Float64Array(this.weights.length + 1);
+        newWeights.set(this.weights);
+        newWeights[this.weights.length] = Math.random() * 2 - 1;
+        this.weights = newWeights;
+    }
+
+    removeInput(index) {
+        if (this.weights.length <= 1) return;
+        let newWeights = new Float64Array(this.weights.length - 1);
+        for (let i = 0, j = 0; i < this.weights.length; i++) {
+            if (i !== index) {
+                newWeights[j++] = this.weights[i];
+            }
+        }
+        this.weights = newWeights;
+    }
+
     clone() {
         let n = new EvolvableNeuron(this.weights.length);
         n.weights.set(this.weights);
@@ -163,6 +193,15 @@ class EvolvableLayer {
 
     mutate(rate, scale) {
         this.neurons.forEach(n => n.mutate(rate, scale));
+    }
+
+    addNeuron(inputCount) {
+        this.neurons.push(new EvolvableNeuron(inputCount));
+    }
+
+    removeNeuron(index) {
+        if (this.neurons.length <= 1) return;
+        this.neurons.splice(index, 1);
     }
 
     clone() {
@@ -190,14 +229,47 @@ class EvolvableNetwork {
         return currentInputs;
     }
 
-    mutate(rate, scale) {
-        this.layers.forEach(l => l.mutate(rate, scale));
+    mutate(rate, scale, priorityTopology = false) {
+        let topologyMutated = false;
+        
+        if (priorityTopology && Math.random() < 0.2) {
+            topologyMutated = true;
+            // Physical topology mutation
+            let layerIdx = Math.floor(Math.random() * this.layers.length);
+            let layer = this.layers[layerIdx];
+            
+            if (Math.random() < 0.5) {
+                // Add neuron to hidden layer
+                let inputCount = (layerIdx === 0) ? this.topology[0] : this.layers[layerIdx - 1].neurons.length;
+                layer.addNeuron(inputCount);
+                
+                // If there's a next layer, we must add an input to all its neurons
+                if (layerIdx + 1 < this.layers.length) {
+                    this.layers[layerIdx + 1].neurons.forEach(n => n.addInput());
+                }
+            } else {
+                // Remove neuron
+                if (layer.neurons.length > 1) {
+                    let neuronIdx = Math.floor(Math.random() * layer.neurons.length);
+                    layer.removeNeuron(neuronIdx);
+                    
+                    // If there's a next layer, we must remove an input from all its neurons
+                    if (layerIdx + 1 < this.layers.length) {
+                        this.layers[layerIdx + 1].neurons.forEach(n => n.removeInput(neuronIdx));
+                    }
+                }
+            }
+        }
+
+        if (!topologyMutated || !priorityTopology) {
+            this.layers.forEach(l => l.mutate(rate, scale));
+        }
     }
 
     clone() {
         let net = new EvolvableNetwork(this.topology);
         net.layers = this.layers.map(l => l.clone());
-        net.fitness = 0;
+        net.fitness = this.fitness;
         return net;
     }
 }
@@ -212,7 +284,7 @@ class Population {
         }
     }
 
-    evolve(survivalRate, mutationRate, mutationScale) {
+    evolve(survivalRate, mutationRate, mutationScale, priorityTopology = false) {
         this.networks.sort((a, b) => b.fitness - a.fitness);
 
         let survivorsCount = Math.max(1, Math.floor(this.size * survivalRate));
@@ -228,7 +300,7 @@ class Population {
         while (nextGen.length < this.size) {
             let parent = survivors[Math.floor(Math.random() * survivors.length)];
             let offspring = parent.clone();
-            offspring.mutate(mutationRate, mutationScale);
+            offspring.mutate(mutationRate, mutationScale, priorityTopology);
             nextGen.push(offspring);
         }
 
@@ -237,13 +309,19 @@ class Population {
 }
 
 // Global State
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const statusElement = document.getElementById('status');
+let canvas, ctx, statusElement;
 const WINDOW_WIDTH = 800;
 const WINDOW_HEIGHT = 600;
-canvas.width = WINDOW_WIDTH;
-canvas.height = WINDOW_HEIGHT;
+
+if (typeof document !== 'undefined') {
+    canvas = document.getElementById('canvas');
+    if (canvas && canvas.getContext) {
+        ctx = canvas.getContext('2d');
+        canvas.width = WINDOW_WIDTH;
+        canvas.height = WINDOW_HEIGHT;
+    }
+    statusElement = document.getElementById('status');
+}
 
 let topology = [4, 1, 1];
 let population = new Population(50, topology);
@@ -253,13 +331,14 @@ let bestNetwork = population.networks[0].clone();
 let generation = 0;
 let isSolving = true;
 let isPaused = false;
+let prioritizeTopology = true;
 
 function changeShape(type) {
     currentShape = type;
     cartPole.setShape(type);
     
     // Reset buttons
-    document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#shape-group button').forEach(btn => btn.classList.remove('active'));
     let btnId = `${type.replace(/_/g, '')}-btn`;
     let btn = document.getElementById(btnId);
     if (btn) btn.classList.add('active');
@@ -287,7 +366,21 @@ function togglePause() {
     }
 }
 
+function togglePriority() {
+    prioritizeTopology = !prioritizeTopology;
+    let btn = document.getElementById('priority-btn');
+    if (btn) {
+        btn.innerText = prioritizeTopology ? "Prioritize: Topology" : "Prioritize: Weights";
+        if (prioritizeTopology) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
+}
+
 function drawSimulation(cp, net) {
+    if (!ctx) return;
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -312,11 +405,6 @@ function drawSimulation(cp, net) {
         let triangleWidth = 40 + cp.mass_pole * 60; // Base width scales with mass
         let triangleHeight = poleLen * 1.5; // Scale height slightly for visualization
         
-        // Vertices relative to the balance point (poleX1, poleY1)
-        // 1. Balance point: (poleX1, poleY1)
-        // 2. Top-left vertex: rotated from (0, -triangleHeight) offset by (-triangleWidth/2, 0)
-        // 3. Top-right vertex: rotated from (0, -triangleHeight) offset by (triangleWidth/2, 0)
-        
         let cosT = Math.cos(cp.theta);
         let sinT = Math.sin(cp.theta);
         
@@ -339,6 +427,38 @@ function drawSimulation(cp, net) {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+    } else if (cp.shapeType === 'star') {
+        // Draw Star balancing on one of its points
+        let points = cp.starPoints;
+        let outerRadius = poleLen;
+        let innerRadius = poleLen * 0.4;
+        
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.8)'; // Golden star
+        ctx.strokeStyle = '#DAA520';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        // We want one point to be at the balance point (poleX1, poleY1)
+        // So we offset the center of the star
+        let centerX = poleX1 + outerRadius * Math.sin(cp.theta);
+        let centerY = poleY1 - outerRadius * Math.cos(cp.theta);
+        
+        // The angle needs to be adjusted so one point is at (poleX1, poleY1)
+        // Offset angle to make the first point at the bottom (relative to rotation)
+        let angleOffset = cp.theta + Math.PI / 2; 
+        
+        for (let i = 0; i < 2 * points; i++) {
+            let radius = (i % 2 === 0) ? outerRadius : innerRadius;
+            let angle = angleOffset + (i * Math.PI / points);
+            let x = centerX + radius * Math.cos(angle);
+            let y = centerY + radius * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
     } else {
         ctx.strokeStyle = '#C83232';
         ctx.lineWidth = 4;
@@ -357,7 +477,7 @@ function drawSimulation(cp, net) {
     ctx.stroke();
 
     // Draw Topology
-    drawTopology(net, 50, 50, 200, 150);
+    drawTopology(net, WINDOW_WIDTH - 300, 50, 200, 150);
 
     // Info
     ctx.fillStyle = 'black';
@@ -375,6 +495,18 @@ function drawTopology(net, x, y, width, height) {
     let layers = [net.topology[0], ...net.layers.map(l => l.neurons.length)];
     let layerXStep = width / (layers.length - 1 || 1);
     
+    // Draw layer labels
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    for (let l = 0; l < layers.length; l++) {
+        let label = "Hidden";
+        if (l === 0) label = "Input";
+        if (l === layers.length - 1) label = "Output";
+        ctx.fillText(label, x + l * layerXStep, y - 10);
+    }
+    ctx.textAlign = 'left';
+
     // Draw connections
     for (let l = 0; l < net.layers.length; l++) {
         let currentLayer = net.layers[l];
@@ -395,24 +527,47 @@ function drawTopology(net, x, y, width, height) {
     }
 
     // Draw neurons
+    const inputLabels = ["x", "x'", "θ", "θ'"];
     for (let l = 0; l < layers.length; l++) {
         let size = layers[l];
         for (let i = 0; i < size; i++) {
+            let nX = x + l * layerXStep;
+            let nY = y + (i + 0.5) * (height / size);
+            
             ctx.fillStyle = 'white';
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(x + l * layerXStep, y + (i + 0.5) * (height / size), 8, 0, PI * 2);
+            ctx.arc(nX, nY, 8, 0, PI * 2);
             ctx.fill();
             ctx.stroke();
             
             // If it's an output/hidden layer, show activation
+            let activation = 0;
             if (l > 0) {
-                let activation = net.layers[l-1].neurons[i].output;
+                activation = net.layers[l-1].neurons[i].output;
                 ctx.fillStyle = `rgba(0, 255, 0, ${activation})`;
                 ctx.beginPath();
-                ctx.arc(x + l * layerXStep, y + (i + 0.5) * (height / size), 6, 0, PI * 2);
+                ctx.arc(nX, nY, 6, 0, PI * 2);
                 ctx.fill();
+            }
+
+            // Neuron Labels & Values
+            ctx.fillStyle = 'black';
+            ctx.font = '10px sans-serif';
+            if (l === 0) {
+                // Input Labels (left of neurons)
+                ctx.textAlign = 'right';
+                ctx.fillText(inputLabels[i] || `i${i}`, nX - 12, nY + 4);
+            } else if (l === layers.length - 1) {
+                // Output Labels (right of neurons)
+                ctx.textAlign = 'left';
+                let action = activation > 0.5 ? "Right" : "Left";
+                ctx.fillText(`${activation.toFixed(2)} (${action})`, nX + 12, nY + 4);
+            } else {
+                // Hidden values (right/bottom of neurons)
+                ctx.textAlign = 'left';
+                ctx.fillText(activation.toFixed(2), nX + 10, nY + 4);
             }
         }
     }
@@ -420,7 +575,9 @@ function drawTopology(net, x, y, width, height) {
 
 function mainLoop() {
     if (isPaused) {
-        requestAnimationFrame(mainLoop);
+        if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+            window.requestAnimationFrame(mainLoop);
+        }
         return;
     }
 
@@ -446,12 +603,14 @@ function mainLoop() {
         }
 
         generation++;
-        statusElement.innerText = `Generation ${generation}, Best Fitness: ${bestNetwork.fitness}`;
+        if (statusElement) {
+            statusElement.innerText = `Generation ${generation}, Best Fitness: ${bestNetwork.fitness}`;
+        }
 
         if (bestNetwork.fitness >= 500) {
             isSolving = false;
         } else {
-            population.evolve(0.1, 0.2, 0.05);
+            population.evolve(0.1, 0.2, 0.05, prioritizeTopology);
         }
         
         cartPole.reset();
@@ -465,7 +624,11 @@ function mainLoop() {
     if (cartPole.isGameOver()) cartPole.reset();
 
     drawSimulation(cartPole, bestNetwork);
-    requestAnimationFrame(mainLoop);
+    if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame(mainLoop);
+    }
 }
 
-mainLoop();
+if (typeof requestAnimationFrame !== 'undefined') {
+    mainLoop();
+}

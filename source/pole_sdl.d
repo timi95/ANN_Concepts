@@ -164,12 +164,11 @@ class EvolvableNetwork {
         writeln("\n");
     }
 
-    void mutate(ref Random rnd, double weightMutationRate, double weightMutationScale, double topologyMutationRate) {
-        foreach (l; layers) {
-            l.mutate(rnd, weightMutationRate, weightMutationScale);
-        }
+    void mutate(ref Random rnd, double weightMutationRate, double weightMutationScale, double topologyMutationRate, bool priorityTopology = true) {
+        bool topologyMutated = false;
 
         if (layers.length > 1 && uniform01(rnd) < topologyMutationRate) {
+            topologyMutated = true;
             size_t layerIdx = uniform(0, layers.length - 1, rnd); 
             size_t inputCount = (layerIdx == 0) ? layers[0].neurons[0].weights.length : layers[layerIdx-1].neurons.length;
             layers[layerIdx].neurons ~= new EvolvableNeuron(inputCount, rnd);
@@ -179,6 +178,7 @@ class EvolvableNetwork {
         }
 
         if (layers.length > 1 && uniform01(rnd) < topologyMutationRate) {
+            topologyMutated = true;
             size_t layerIdx = uniform(0, layers.length - 1, rnd);
             if (layers[layerIdx].neurons.length > 1) {
                 size_t neuronIdx = uniform(0, layers[layerIdx].neurons.length, rnd);
@@ -188,6 +188,12 @@ class EvolvableNetwork {
                         n.weights = n.weights.remove(neuronIdx);
                     }
                 }
+            }
+        }
+
+        if (!topologyMutated || !priorityTopology) {
+            foreach (l; layers) {
+                l.mutate(rnd, weightMutationRate, weightMutationScale);
             }
         }
     }
@@ -205,7 +211,7 @@ class Population {
         }
     }
 
-    void evolve(double weightMutationRate, double weightMutationScale, double topologyMutationRate) {
+    void evolve(double weightMutationRate, double weightMutationScale, double topologyMutationRate, bool priorityTopology = true) {
         sort!((a, b) => a.fitness > b.fitness)(networks);
         size_t eliteCount = networks.length / 10;
         if (eliteCount == 0) eliteCount = 1;
@@ -217,7 +223,7 @@ class Population {
         while (nextGeneration.length < networks.length) {
             size_t parentIdx = uniform(0, eliteCount, rnd);
             auto child = new EvolvableNetwork(networks[parentIdx]);
-            child.mutate(rnd, weightMutationRate, weightMutationScale, topologyMutationRate);
+            child.mutate(rnd, weightMutationRate, weightMutationScale, topologyMutationRate, priorityTopology);
             nextGeneration ~= child;
         }
         networks = nextGeneration;
@@ -488,6 +494,32 @@ void drawSimulation(SDL_Renderer* renderer, IBalanceable cp, EvolvableNetwork ne
             { cartX + cartWidth / 2, cartY }
         ];
         SDL_RenderDrawLines(renderer, points.ptr, 4);
+    } else if (cp.getShapeName().canFind("Star")) {
+        SDL_SetRenderDrawColor(renderer, 255, 215, 0, 255); // Gold
+        auto star = cast(CartStar)cp;
+        int pointsCount = star ? star.getPoints() : 5;
+        double outerRadius = poleLength;
+        double innerRadius = poleLength * 0.4;
+        
+        double theta = cp.getTheta();
+        double angleOffset = theta - PI / 2.0;
+        
+        // One point should be at the balance point (cartX + cartWidth / 2, cartY)
+        // Center of the star
+        double centerX = cartX + cartWidth / 2 + sin(theta) * outerRadius;
+        double centerY = cartY - cos(theta) * outerRadius;
+        
+        SDL_Point[] starPoints;
+        starPoints.length = pointsCount * 2 + 1;
+        
+        for (int i = 0; i < 2 * pointsCount; i++) {
+            double radius = (i % 2 == 0) ? outerRadius : innerRadius;
+            double angle = angleOffset + (i * PI / pointsCount);
+            starPoints[i] = SDL_Point(cast(int)(centerX + radius * cos(angle)), 
+                                      cast(int)(centerY + radius * sin(angle)));
+        }
+        starPoints[pointsCount * 2] = starPoints[0];
+        SDL_RenderDrawLines(renderer, starPoints.ptr, cast(int)starPoints.length);
     } else {
         SDL_SetRenderDrawColor(renderer, 250, 100, 100, 255);
     }
@@ -522,7 +554,15 @@ SimResult displaySDLSelf(EvolvableNetwork net, SDL_Renderer* renderer, string[] 
             case "Small Triangle": return cast(IBalanceable)new CartSmallTriangle();
             case "Large Triangle": return cast(IBalanceable)new CartLargeTriangle();
             case "Heavy Triangle": return cast(IBalanceable)new CartHeavyTriangle();
-            default: return cast(IBalanceable)new CartPole();
+            default: 
+                if (type.canFind("Star")) {
+                    import std.string;
+                    int p = 5;
+                    auto parts = type.split("-");
+                    if (parts.length > 0) p = parts[0].to!int;
+                    return cast(IBalanceable)new CartStar(p);
+                }
+                return cast(IBalanceable)new CartPole();
         }
     };
     cp = createCP(currentShape);
@@ -545,6 +585,15 @@ SimResult displaySDLSelf(EvolvableNetwork net, SDL_Renderer* renderer, string[] 
                     case SDLK_5: selection = 5; changed = true; break;
                     case SDLK_6: selection = 6; changed = true; break;
                     case SDLK_7: selection = 7; changed = true; break;
+                    case SDLK_8: selection = 8; changed = true; break;
+                    case SDLK_9: selection = 9; changed = true; break;
+                    case SDLK_a: selection = 10; changed = true; break;
+                    case SDLK_b: selection = 11; changed = true; break;
+                    case SDLK_c: selection = 12; changed = true; break;
+                    case SDLK_d: selection = 13; changed = true; break;
+                    case SDLK_e: selection = 14; changed = true; break;
+                    case SDLK_f: selection = 15; changed = true; break;
+                    case SDLK_g: selection = 16; changed = true; break;
                     case SDLK_ESCAPE: quit = true; break;
                     default: break;
                 }
@@ -612,24 +661,25 @@ void main() {
     
     string[] shapes = [
         "Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", 
-        "Standard Triangle", "Small Triangle", "Large Triangle", "Heavy Triangle"
+        "Standard Triangle", "Small Triangle", "Large Triangle", "Heavy Triangle",
+        "2-Pointed Star", "3-Pointed Star", "4-Pointed Star", "5-Pointed Star",
+        "6-Pointed Star", "7-Pointed Star", "8-Pointed Star", "9-Pointed Star",
+        "10-Pointed Star"
     ];
-    writeln("Select a shape to balance (0-7):");
+    writeln("Select a shape to balance (0-9, a-g):");
     foreach (i, s; shapes) {
-        writef("%d: %s\n", i, s);
+        if (i < 10) writef("%d: %s\n", i, s);
+        else writef("%c: %s\n", cast(char)('a' + (i - 10)), s);
     }
     
     int selection = 0;
-    // In a real GUI we'd use buttons, but for now we can use terminal input if available
-    // or just default and allow cycling with keys in the loop.
-    // Since this is often run non-interactively in tests, we'll try to read if possible.
-    // However, let's make it selectable via SDL events if we can.
     
     writeln("Starting NeuroEvolution for Cart-Pole with SDL Visualization...");
-    writeln("Press 0-4 on your keyboard to change shape during evolution.");
+    writeln("Press 0-9, a-g on your keyboard to change shape during evolution.");
     
     string currentShape = shapes[selection];
     bool quit = false;
+    bool priorityTopology = true;
     for (int gen = 0; gen < 200 && !quit; gen++) {
         foreach (net; pop.networks) {
             net.fitness = evaluateFitness(net, currentShape);
@@ -665,6 +715,13 @@ void main() {
                     case SDLK_2: selection = 2; break;
                     case SDLK_3: selection = 3; break;
                     case SDLK_4: selection = 4; break;
+                    case SDLK_5: selection = 5; break;
+                    case SDLK_6: selection = 6; break;
+                    case SDLK_7: selection = 7; break;
+                    case SDLK_p: 
+                        priorityTopology = !priorityTopology;
+                        writefln("Priority Topology: %s", priorityTopology);
+                        break;
                     case SDLK_ESCAPE: quit = true; break;
                     default: break;
                 }
@@ -673,7 +730,7 @@ void main() {
             }
         }
         
-        pop.evolve(0.1, 0.2, 0.05);
+        pop.evolve(0.1, 0.2, 0.05, priorityTopology);
     }
 
     writeln("Evolution Complete.");

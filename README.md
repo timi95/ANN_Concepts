@@ -4,16 +4,20 @@ This repository explores various Artificial Neural Network (ANN) concepts, speci
 
 ### Features
 
-- **Neuroevolution**: Evolve neural networks to solve problems without explicit training data.
-- **Backpropagation**: Classic training of neural networks using supervised learning.
-- **Tic-Tac-Toe Simulation**:
-    - Train an AI to play Tic-Tac-Toe using backpropagation on heuristic-generated data.
-    - Evolve a population of networks to master the game through competitive play.
-- **Cart-Pole (Inverted Pendulum) Simulation**:
-    - Evolve neural networks to balance a pole on a moving cart.
-    - Features both text-based and SDL-based visual simulations.
-- **Dynamic Topology Visualization**: Visual representation of the neural network's structure and activity during simulation.
-- **D Programming Language**: Built using the D language for high performance and modern features.
+| Feature | Status |
+| :--- | :--- |
+| **Neuroevolution** | Evolve neural networks to solve problems without explicit training data. |
+| **Backpropagation** | Classic training of neural networks using supervised learning. |
+| **Dynamic Topology** | Real-time visualization of the neural network's structure, weights, and neuron activations. |
+| **Prioritize Topology** | **Enabled by default**. Structural changes (adding/removing neurons) are prioritized over weight adjustments during evolution. |
+| **D Programming Language** | High-performance implementation for native simulations. |
+| **Pure JavaScript/Canvas** | Browser-based simulation without WebAssembly or external dependencies. |
+
+### Cart-Pole Simulation Variants
+You can switch between multiple physical shapes in the simulation to see how the neuroevolution adapts:
+- **Standard Pole**: The classic balancing task.
+- **Long/Weighted/Short Heavy Poles**: Varied physics for increased difficulty.
+- **Triangle Shapes**: Balancing a triangle on its vertex (includes Small, Large, Heavy, and Tilted variants).
 
 ### Project Structure
 
@@ -81,6 +85,14 @@ To verify the browser simulation logic, run the Node.js test scripts:
 2.  **Balancing Logic Tests**: Verifies the core physics engine, gravity, and boundary conditions.
     ```bash
     node web/test_balancing.js
+    ```
+3.  **Priority Switch Tests**: Verifies the "Prioritize Topology" mutation logic.
+    ```bash
+    node web/test_priority.js
+    ```
+4.  **Dynamic Node Mutation Tests**: Validates addition and removal of hidden nodes.
+    ```bash
+    node web/test_dynamic_nodes.js
     ```
 
 To run the native D unit tests:
