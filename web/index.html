@@ -3,60 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart-Pole NeuroEvolution</title>
+    <title>Cart-Pole NeuroEvolution (JS)</title>
     <style>
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
         canvas { border: 1px solid #ccc; background: white; max-width: 100%; }
-        .controls { margin-top: 1em; }
+        .controls { margin-top: 1em; text-align: center; max-width: 800px; }
     </style>
 </head>
 <body>
-    <h1>Cart-Pole NeuroEvolution (Wasm)</h1>
-    <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    <h1>Cart-Pole NeuroEvolution (Pure JavaScript)</h1>
+    <canvas id="canvas"></canvas>
     <div class="controls">
-        <p>This simulation uses NeuroEvolution to train a neural network to balance a pole on a cart.</p>
-        <p>Status: <span id="status">Loading...</span></p>
+        <p>This simulation uses NeuroEvolution to train a neural network to balance a pole on a cart. The entire simulation and visualization are implemented in JavaScript using HTML5 Canvas.</p>
+        <p>Status: <span id="status">Starting...</span></p>
     </div>
-    <script type='text/javascript'>
-      var statusElement = document.getElementById('status');
-      var Module = {
-        preRun: [],
-        postRun: [],
-        print: (function() {
-          return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            console.log(text);
-          };
-        })(),
-        canvas: (function() {
-          var canvas = document.getElementById('canvas');
-          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
-          return canvas;
-        })(),
-        setStatus: function(text) {
-          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-          if (text === Module.setStatus.last.text) return;
-          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-          var now = Date.now();
-          if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
-          Module.setStatus.last.time = now;
-          Module.setStatus.last.text = text;
-          statusElement.innerHTML = text;
-        },
-        totalDependencies: 0,
-        monitorRunDependencies: function(left) {
-          this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-        }
-      };
-      Module.setStatus('Downloading...');
-      window.onerror = function() {
-        Module.setStatus('Exception thrown, see JavaScript console');
-        Module.setStatus = function(text) {
-          if (text) Module.printErr('[post-exception status] ' + text);
-        };
-      };
-    </script>
-    <script async src="pole.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
