@@ -97,28 +97,45 @@ dub run :pole-sdl
 The Cart-Pole simulation can also be run in a web browser using pure JavaScript and HTML5 Canvas.
 
 **How to Run:**
-1. Navigate to the `web/` directory.
-2. Open `index.html` in a web browser using a local web server (e.g., `python -m http.server`).
-3. The simulation will run automatically, showing the evolution process and the best network's performance.
+1. Navigate to the `web/` directory:
+   ```bash
+   cd web
+   ```
+2. Start a local web server:
+   - **Python 3**: `python3 -m http.server`
+   - **Node.js**: `npx serve .` or `npm install -g serve && serve .`
+3. Open `http://localhost:8000` (for Python) or `http://localhost:3000` (for Node) in your browser.
+4. The simulation will run automatically, showing the evolution process and the best network's performance.
+
+**Usage Example & UI Guide:**
+1.  **Launch the Simulation**: After starting your local server, visit the provided URL. You'll immediately see a cart-pole system and its neural network controller.
+2.  **Monitor Progress**: The **Status** area in the sidebar shows the current generation, best fitness achieved, and total time elapsed.
+3.  **Real-Time Visualization**: 
+    - **Left (Cart-Pole)**: Watch the cart move and the pole tilt. The system resets each time the pole falls or the cart goes off-screen.
+    - **Right (Neural Network)**: Observe the network topology. Nodes representing inputs (x, x\_dot, theta, theta\_dot) are on the left, and the output node (force) is on the right. Edge thickness and color indicate weight strength and sign.
+4.  **Interactive Shape Switching**: Click any of the **Shape Buttons** (e.g., `Long Pole` or `5-Star`) to instantly change the physical parameters. The current population will immediately try to adapt to the new physics.
+5.  **Control Evolution Strategy**: 
+    - **Pause**: Click the `Pause` button to freeze the simulation and examine a specific network state.
+    - **Prioritize Strategy**: Toggle `Prioritize: Topology` to switch between focusing on structural mutations (adding/removing hidden nodes) versus weight-only adjustments.
 
 The web version features a real-time visualization of the cart-pole system and the neural network's topology, including weight strengths and neuron activations.
 
 **Running Tests:**
-To verify the browser simulation logic, run the Node.js test scripts:
+To verify the browser simulation logic, run the Node.js test scripts from the root directory:
 
-1.  **Shape Change Tests**: Validates physical constants and state resets across different pole configurations.
+1.  **Shape Change Tests**:
     ```bash
     node web/test_shapes.js
     ```
-2.  **Balancing Logic Tests**: Verifies the core physics engine, gravity, and boundary conditions.
+2.  **Balancing Logic Tests**:
     ```bash
     node web/test_balancing.js
     ```
-3.  **Priority Switch Tests**: Verifies the "Prioritize Topology" mutation logic.
+3.  **Priority Switch Tests**:
     ```bash
     node web/test_priority.js
     ```
-4.  **Dynamic Node Mutation Tests**: Validates addition and removal of hidden nodes.
+4.  **Dynamic Node Mutation Tests**:
     ```bash
     node web/test_dynamic_nodes.js
     ```
