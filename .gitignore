@@ -1,0 +1,8 @@
+ann_concepts
+evolve_game
+pole_game
+tictactoe_game
+*.o
+.dub/
+dub.selections.json
+.junie/
