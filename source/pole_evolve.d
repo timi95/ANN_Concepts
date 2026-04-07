@@ -220,7 +220,10 @@ double evaluateFitness(EvolvableNetwork net, string shapeType = "Standard Pole",
         case "Long Pole": cp = new CartLongPole(); break;
         case "Weighted Pole": cp = new CartWeightedPole(); break;
         case "Short Heavy Pole": cp = new CartShortHeavyPole(); break;
-        case "Triangle Shape": cp = new CartTriangle(); break;
+        case "Standard Triangle": cp = new CartTriangle(); break;
+        case "Small Triangle": cp = new CartSmallTriangle(); break;
+        case "Large Triangle": cp = new CartLargeTriangle(); break;
+        case "Heavy Triangle": cp = new CartHeavyTriangle(); break;
         default: cp = new CartPole(); break;
     }
     int steps = 0;
@@ -240,7 +243,10 @@ void displaySimulation(EvolvableNetwork net, string shapeType = "Standard Pole",
         case "Long Pole": cp = new CartLongPole(); break;
         case "Weighted Pole": cp = new CartWeightedPole(); break;
         case "Short Heavy Pole": cp = new CartShortHeavyPole(); break;
-        case "Triangle Shape": cp = new CartTriangle(); break;
+        case "Standard Triangle": cp = new CartTriangle(); break;
+        case "Small Triangle": cp = new CartSmallTriangle(); break;
+        case "Large Triangle": cp = new CartLargeTriangle(); break;
+        case "Heavy Triangle": cp = new CartHeavyTriangle(); break;
         default: cp = new CartPole(); break;
     }
     int steps = 0;
@@ -293,7 +299,10 @@ void main() {
     int[] initialTopology = [4, 1, 1];
     auto pop = new Population(50, initialTopology);
     
-    string[] shapes = ["Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", "Triangle Shape"];
+    string[] shapes = [
+        "Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", 
+        "Standard Triangle", "Small Triangle", "Large Triangle", "Heavy Triangle"
+    ];
     writeln("Starting NeuroEvolution for Cart-Pole [Various Shapes]...");
     
     // We'll rotate shapes every 20 generations for variety in ASCII version

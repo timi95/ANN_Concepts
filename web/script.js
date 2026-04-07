@@ -8,12 +8,14 @@ class CartPole {
         this.tau = 0.02; // Seconds between state updates
         this.x_threshold = 2.4;
         this.theta_threshold_radians = 12 * PI / 180;
+        this.initial_theta_range = 0.05; // Default random angle range
         this.setShape(type);
         this.reset();
     }
 
     setShape(type) {
         this.shapeType = type;
+        this.initial_theta_range = 0.05; // Reset to default
         switch (type) {
             case 'long':
                 this.mass_pole = 0.1;
@@ -33,7 +35,28 @@ class CartPole {
             case 'triangle':
                 this.mass_pole = 0.3;
                 this.length = 0.6; // Higher COM
-                this.shapeName = "Triangle Shape";
+                this.shapeName = "Standard Triangle";
+                break;
+            case 'small_triangle':
+                this.mass_pole = 0.1;
+                this.length = 0.3;
+                this.shapeName = "Small Triangle";
+                break;
+            case 'large_triangle':
+                this.mass_pole = 0.5;
+                this.length = 1.0;
+                this.shapeName = "Large Triangle";
+                break;
+            case 'heavy_triangle':
+                this.mass_pole = 1.0;
+                this.length = 0.6;
+                this.shapeName = "Heavy Triangle";
+                break;
+            case 'tilted_triangle':
+                this.mass_pole = 0.3;
+                this.length = 0.6;
+                this.initial_theta_range = 0.15; // Greater initial variation
+                this.shapeName = "Tilted Triangle";
                 break;
             case 'standard':
             default:
@@ -47,7 +70,7 @@ class CartPole {
     reset() {
         this.x = 0.0;
         this.x_dot = 0.0;
-        this.theta = 0.0;
+        this.theta = (Math.random() * 2 - 1) * this.initial_theta_range;
         this.theta_dot = 0.0;
     }
 
@@ -236,7 +259,9 @@ function changeShape(type) {
     
     // Reset buttons
     document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`${type.replace(' ', '')}-btn`).classList.add('active');
+    let btnId = `${type.replace(/_/g, '')}-btn`;
+    let btn = document.getElementById(btnId);
+    if (btn) btn.classList.add('active');
     
     // Reset evolution for the new shape
     generation = 0;
@@ -268,9 +293,9 @@ function drawSimulation(cp, net) {
     let poleX2 = poleX1 + poleLen * Math.sin(cp.theta);
     let poleY2 = poleY1 - poleLen * Math.cos(cp.theta);
 
-    if (cp.shapeType === 'triangle') {
+    if (cp.shapeType.includes('triangle')) {
         // Draw Triangle balancing on its point
-        let triangleWidth = 60;
+        let triangleWidth = 40 + cp.mass_pole * 60; // Base width scales with mass
         let triangleHeight = poleLen * 1.5; // Scale height slightly for visualization
         
         // Vertices relative to the balance point (poleX1, poleY1)

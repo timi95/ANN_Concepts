@@ -461,16 +461,30 @@ void drawSimulation(SDL_Renderer* renderer, IBalanceable cp, EvolvableNetwork ne
         SDL_RenderFillRect(renderer, &weight);
     } else if (cp.getShapeName() == "Short Heavy Pole") {
         SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-    } else if (cp.getShapeName() == "Triangle Shape") {
+    } else if (cp.getShapeName().canFind("Triangle")) {
         SDL_SetRenderDrawColor(renderer, 255, 165, 0, 255); // Orange
         // Draw a triangle
-        int baseHalfWidth = 20;
+        // We use the mass to influence the width slightly
+        double mass = 0.3; // Default
+        if (cp.getShapeName().canFind("Small")) mass = 0.1;
+        else if (cp.getShapeName().canFind("Large")) mass = 0.5;
+        else if (cp.getShapeName().canFind("Heavy")) mass = 1.0;
+
+        int baseHalfWidth = cast(int)(15 + mass * 30);
+        
+        double theta = cp.getTheta();
+        double cosT = cos(theta);
+        double sinT = sin(theta);
+        
+        // Scale visual height slightly
+        double visualHeight = poleLength * 1.5;
+        
         SDL_Point[4] points = [
             { cartX + cartWidth / 2, cartY },
-            { cast(int)(cartX + cartWidth / 2 + sin(cp.getTheta() - 0.3) * poleLength * 1.2), 
-              cast(int)(cartY - cos(cp.getTheta() - 0.3) * poleLength * 1.2) },
-            { cast(int)(cartX + cartWidth / 2 + sin(cp.getTheta() + 0.3) * poleLength * 1.2), 
-              cast(int)(cartY - cos(cp.getTheta() + 0.3) * poleLength * 1.2) },
+            { cast(int)(cartX + cartWidth / 2 + (-baseHalfWidth * cosT - (-visualHeight) * sinT)),
+              cast(int)(cartY + (-baseHalfWidth * sinT + (-visualHeight) * cosT)) },
+            { cast(int)(cartX + cartWidth / 2 + (baseHalfWidth * cosT - (-visualHeight) * sinT)),
+              cast(int)(cartY + (baseHalfWidth * sinT + (-visualHeight) * cosT)) },
             { cartX + cartWidth / 2, cartY }
         ];
         SDL_RenderDrawLines(renderer, points.ptr, 4);
@@ -478,7 +492,7 @@ void drawSimulation(SDL_Renderer* renderer, IBalanceable cp, EvolvableNetwork ne
         SDL_SetRenderDrawColor(renderer, 250, 100, 100, 255);
     }
 
-    if (cp.getShapeName() != "Triangle Shape") {
+    if (!cp.getShapeName().canFind("Triangle")) {
         for (int i = -2; i <= 2; i++) {
             SDL_RenderDrawLine(renderer, cartX + cartWidth / 2 + i, cartY, poleEndX + i, poleEndY);
         }
@@ -504,7 +518,10 @@ SimResult displaySDLSelf(EvolvableNetwork net, SDL_Renderer* renderer, string[] 
             case "Long Pole": return cast(IBalanceable)new CartLongPole();
             case "Weighted Pole": return cast(IBalanceable)new CartWeightedPole();
             case "Short Heavy Pole": return cast(IBalanceable)new CartShortHeavyPole();
-            case "Triangle Shape": return cast(IBalanceable)new CartTriangle();
+            case "Standard Triangle": return cast(IBalanceable)new CartTriangle();
+            case "Small Triangle": return cast(IBalanceable)new CartSmallTriangle();
+            case "Large Triangle": return cast(IBalanceable)new CartLargeTriangle();
+            case "Heavy Triangle": return cast(IBalanceable)new CartHeavyTriangle();
             default: return cast(IBalanceable)new CartPole();
         }
     };
@@ -525,6 +542,9 @@ SimResult displaySDLSelf(EvolvableNetwork net, SDL_Renderer* renderer, string[] 
                     case SDLK_2: selection = 2; changed = true; break;
                     case SDLK_3: selection = 3; changed = true; break;
                     case SDLK_4: selection = 4; changed = true; break;
+                    case SDLK_5: selection = 5; changed = true; break;
+                    case SDLK_6: selection = 6; changed = true; break;
+                    case SDLK_7: selection = 7; changed = true; break;
                     case SDLK_ESCAPE: quit = true; break;
                     default: break;
                 }
@@ -590,8 +610,11 @@ void main() {
     int[] initialTopology = [4, 1, 1];
     auto pop = new Population(50, initialTopology);
     
-    string[] shapes = ["Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", "Triangle Shape"];
-    writeln("Select a shape to balance (0-4):");
+    string[] shapes = [
+        "Standard Pole", "Long Pole", "Weighted Pole", "Short Heavy Pole", 
+        "Standard Triangle", "Small Triangle", "Large Triangle", "Heavy Triangle"
+    ];
+    writeln("Select a shape to balance (0-7):");
     foreach (i, s; shapes) {
         writef("%d: %s\n", i, s);
     }

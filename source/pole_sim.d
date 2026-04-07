@@ -94,5 +94,26 @@ class CartTriangle : CartPole {
     this() {
         super(0.3, 0.6); // Higher COM for triangle
     }
-    override string getShapeName() const { return "Triangle Shape"; }
+    override string getShapeName() const { return "Standard Triangle"; }
+}
+
+class CartSmallTriangle : CartPole {
+    this() {
+        super(0.1, 0.3);
+    }
+    override string getShapeName() const { return "Small Triangle"; }
+}
+
+class CartLargeTriangle : CartPole {
+    this() {
+        super(0.5, 1.0);
+    }
+    override string getShapeName() const { return "Large Triangle"; }
+}
+
+class CartHeavyTriangle : CartPole {
+    this() {
+        super(1.0, 0.6);
+    }
+    override string getShapeName() const { return "Heavy Triangle"; }
 }

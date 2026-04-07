@@ -16,7 +16,11 @@ global.document = {
         { id: 'long-btn', classList: { add: () => {}, remove: () => {} } },
         { id: 'weighted-btn', classList: { add: () => {}, remove: () => {} } },
         { id: 'shortheavy-btn', classList: { add: () => {}, remove: () => {} } },
-        { id: 'triangle-btn', classList: { add: () => {}, remove: () => {} } }
+        { id: 'triangle-btn', classList: { add: () => {}, remove: () => {} } },
+        { id: 'smalltriangle-btn', classList: { add: () => {}, remove: () => {} } },
+        { id: 'largetriangle-btn', classList: { add: () => {}, remove: () => {} } },
+        { id: 'heavytriangle-btn', classList: { add: () => {}, remove: () => {} } },
+        { id: 'tiltedtriangle-btn', classList: { add: () => {}, remove: () => {} } }
     ]
 };
 
@@ -89,10 +93,34 @@ assert(cartPole.shapeType === 'triangle', 'Shape should be triangle');
 assert(cartPole.mass_pole === 0.3, 'Triangle mass should be 0.3');
 assert(cartPole.length === 0.6, 'Triangle length should be 0.6');
 
-// Test 6: Change back to Standard
+// Test 6: Change to Small Triangle
+changeShape('small_triangle');
+assert(cartPole.shapeType === 'small_triangle', 'Shape should be small_triangle');
+assert(cartPole.mass_pole === 0.1, 'Small triangle mass should be 0.1');
+assert(cartPole.length === 0.3, 'Small triangle length should be 0.3');
+
+// Test 7: Change to Large Triangle
+changeShape('large_triangle');
+assert(cartPole.shapeType === 'large_triangle', 'Shape should be large_triangle');
+assert(cartPole.mass_pole === 0.5, 'Large triangle mass should be 0.5');
+assert(cartPole.length === 1.0, 'Large triangle length should be 1.0');
+
+// Test 8: Change to Heavy Triangle
+changeShape('heavy_triangle');
+assert(cartPole.shapeType === 'heavy_triangle', 'Shape should be heavy_triangle');
+assert(cartPole.mass_pole === 1.0, 'Heavy triangle mass should be 1.0');
+assert(cartPole.length === 0.6, 'Heavy triangle length should be 0.6');
+
+// Test 9: Change to Tilted Triangle
+changeShape('tilted_triangle');
+assert(cartPole.shapeType === 'tilted_triangle', 'Shape should be tilted_triangle');
+assert(cartPole.initial_theta_range === 0.15, 'Tilted triangle should have 0.15 theta range');
+
+// Test 10: Change back to Standard
 changeShape('standard');
 assert(cartPole.shapeType === 'standard', 'Should change back to standard');
 assert(cartPole.mass_pole === 0.1, 'Standard pole mass should be 0.1');
 assert(cartPole.length === 0.5, 'Standard pole length should be 0.5');
+assert(cartPole.initial_theta_range === 0.05, 'Should reset to 0.05 theta range');
 
 console.log('\nAll Shape Change Tests Passed Successfully!');
