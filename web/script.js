@@ -252,6 +252,7 @@ let cartPole = new CartPole(currentShape);
 let bestNetwork = population.networks[0].clone();
 let generation = 0;
 let isSolving = true;
+let isPaused = false;
 
 function changeShape(type) {
     currentShape = type;
@@ -271,6 +272,19 @@ function changeShape(type) {
     bestNetwork.fitness = 0;
     
     statusElement.innerText = `Switched to ${cartPole.shapeName}. Resetting evolution...`;
+}
+
+function togglePause() {
+    isPaused = !isPaused;
+    let btn = document.getElementById('pause-btn');
+    if (btn) {
+        btn.innerText = isPaused ? "Resume" : "Pause";
+        if (isPaused) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
 }
 
 function drawSimulation(cp, net) {
@@ -405,6 +419,11 @@ function drawTopology(net, x, y, width, height) {
 }
 
 function mainLoop() {
+    if (isPaused) {
+        requestAnimationFrame(mainLoop);
+        return;
+    }
+
     if (isSolving) {
         for (let net of population.networks) {
             let sim = new CartPole(currentShape);
