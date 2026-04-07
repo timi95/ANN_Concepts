@@ -6,3 +6,4 @@ tictactoe_game
 .dub/
 dub.selections.json
 .junie/
+.env

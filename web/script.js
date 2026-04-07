@@ -1,16 +1,42 @@
 const PI = Math.PI;
 
 class CartPole {
-    constructor(mass_p = 0.1, len = 0.5) {
+    constructor(type = 'standard') {
         this.gravity = 9.8;
         this.mass_cart = 1.0;
-        this.mass_pole = mass_p;
-        this.length = len; // Half-length of pole
         this.force_mag = 10.0;
         this.tau = 0.02; // Seconds between state updates
         this.x_threshold = 2.4;
         this.theta_threshold_radians = 12 * PI / 180;
+        this.setShape(type);
         this.reset();
+    }
+
+    setShape(type) {
+        this.shapeType = type;
+        switch (type) {
+            case 'long':
+                this.mass_pole = 0.1;
+                this.length = 1.0;
+                this.shapeName = "Long Pole";
+                break;
+            case 'weighted':
+                this.mass_pole = 0.5;
+                this.length = 0.5;
+                this.shapeName = "Weighted Pole";
+                break;
+            case 'shortheavy':
+                this.mass_pole = 1.0;
+                this.length = 0.2;
+                this.shapeName = "Short Heavy Pole";
+                break;
+            case 'standard':
+            default:
+                this.mass_pole = 0.1;
+                this.length = 0.5;
+                this.shapeName = "Standard Pole";
+                break;
+        }
     }
 
     reset() {
@@ -193,10 +219,29 @@ canvas.height = WINDOW_HEIGHT;
 
 let topology = [4, 1, 1];
 let population = new Population(50, topology);
-let cartPole = new CartPole();
+let currentShape = 'standard';
+let cartPole = new CartPole(currentShape);
 let bestNetwork = population.networks[0].clone();
 let generation = 0;
 let isSolving = true;
+
+function changeShape(type) {
+    currentShape = type;
+    cartPole.setShape(type);
+    
+    // Reset buttons
+    document.querySelectorAll('.button-group button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`${type.replace(' ', '')}-btn`).classList.add('active');
+    
+    // Reset evolution for the new shape
+    generation = 0;
+    isSolving = true;
+    population = new Population(50, topology);
+    bestNetwork = population.networks[0].clone();
+    bestNetwork.fitness = 0;
+    
+    statusElement.innerText = `Switched to ${cartPole.shapeName}. Resetting evolution...`;
+}
 
 function drawSimulation(cp, net) {
     ctx.fillStyle = 'white';
@@ -241,9 +286,10 @@ function drawSimulation(cp, net) {
     ctx.font = '16px sans-serif';
     ctx.fillText(`Generation: ${generation}`, 20, 30);
     ctx.fillText(`Best Fitness: ${bestNetwork.fitness.toFixed(0)}`, 20, 50);
+    ctx.fillText(`Shape: ${cp.shapeName}`, 20, 70);
     if (!isSolving) {
         ctx.fillStyle = 'green';
-        ctx.fillText("SOLVED!", 20, 70);
+        ctx.fillText("SOLVED!", 20, 90);
     }
 }
 
@@ -297,7 +343,7 @@ function drawTopology(net, x, y, width, height) {
 function mainLoop() {
     if (isSolving) {
         for (let net of population.networks) {
-            let sim = new CartPole();
+            let sim = new CartPole(currentShape);
             let fitness = 0;
             for (let i = 0; i < 500; i++) {
                 let inputs = sim.getInputs();

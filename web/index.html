@@ -8,10 +8,20 @@
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
         canvas { border: 1px solid #ccc; background: white; max-width: 100%; }
         .controls { margin-top: 1em; text-align: center; max-width: 800px; }
+        .button-group { margin: 10px 0; }
+        button { padding: 8px 16px; margin: 0 5px; cursor: pointer; border: 1px solid #999; border-radius: 4px; background: #fff; }
+        button:hover { background: #eee; }
+        button.active { background: #007bff; color: #fff; border-color: #0056b3; }
     </style>
 </head>
 <body>
     <h1>Cart-Pole NeuroEvolution (Pure JavaScript)</h1>
+    <div class="button-group">
+        <button id="standard-btn" class="active" onclick="changeShape('standard')">Standard Pole</button>
+        <button id="long-btn" onclick="changeShape('long')">Long Pole</button>
+        <button id="weighted-btn" onclick="changeShape('weighted')">Weighted Pole</button>
+        <button id="shortheavy-btn" onclick="changeShape('shortheavy')">Short Heavy Pole</button>
+    </div>
     <canvas id="canvas"></canvas>
     <div class="controls">
         <p>This simulation uses NeuroEvolution to train a neural network to balance a pole on a cart. The entire simulation and visualization are implemented in JavaScript using HTML5 Canvas.</p>

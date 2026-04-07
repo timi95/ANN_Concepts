@@ -14,19 +14,19 @@
             "name": "tictactoe",
             "targetType": "executable",
             "mainSourceFile": "source/app.d",
-            "excludedSourceFiles": ["source/evolve_nn.d", "source/pole_evolve.d", "source/pole_sdl.d", "source/mut_nn.d"]
+            "excludedSourceFiles": ["source/evolve_nn.d", "source/pole_evolve.d", "source/pole_sdl.d", "source/mut_nn.d", "source/train_and_verify.d"]
         },
         {
             "name": "evolve",
             "targetType": "executable",
             "mainSourceFile": "source/evolve_nn.d",
-            "excludedSourceFiles": ["source/app.d", "source/pole_evolve.d", "source/pole_sdl.d", "source/mut_nn.d"]
+            "excludedSourceFiles": ["source/app.d", "source/pole_evolve.d", "source/pole_sdl.d", "source/mut_nn.d", "source/train_and_verify.d"]
         },
         {
             "name": "pole",
             "targetType": "executable",
             "mainSourceFile": "source/pole_evolve.d",
-            "excludedSourceFiles": ["source/app.d", "source/evolve_nn.d", "source/pole_sdl.d", "source/mut_nn.d"]
+            "excludedSourceFiles": ["source/app.d", "source/evolve_nn.d", "source/pole_sdl.d", "source/mut_nn.d", "source/train_and_verify.d"]
         },
         {
             "name": "pole-sdl",
